@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+ <link rel="stylesheet" href="../css/common.css" />
+		<script type="text/javascript" src="../js/lwquery.js"></script>
+		<script type="text/javascript" src="../js/jquery.js" ></script>
+		
+		<style>
+			.main{
+				
+			}
+			
+			.main input{
+				margin: 20px;
+			}
+			.main .upload{
+				background-color: cornflowerblue;
+				color: #fff;
+				border: 1px solid #ccc;
+				border-radius: 1px;
+				padding: 8px 18px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class='main'>
+			<input type='file' class='filebutton' style='display:none'  /> <br>
+			<button class="upload" onclick='selectFile()' > 选择文件上传 </button>
+			<div>
+				<img class='imagebox' src='' style='width:300px;'/>
+			</div>
+	   </div>
+	</body>
+	
+	<script>
+		// 初始化
+		var up =new LWUploader();
+		up.setButton('.filebutton');  // 设置file input控件
+		up.setUploadUrl(LW.getContextPath()+'FileUploadService1'); // 设置服务URL
+		up.setLogEnabled( false );
+		
+		// 事件处理 'start' 'progress' 'complete' 'error' 'abort'
+		up.processEvent = function(event)
+		{
+			if(event == 'progress')
+			{
+				LW.log("进度: " + this.progress);
+			}
+			else if(event == 'complete')
+			{
+				LW.log("完成上传");
+				LW.log(this.response);
+				
+				var jresp = JSON.parse (this.response); 
+				var url  = jresp.data.url;
+				$('.imagebox').attr('src', url);
+			}
+		};
+		
+		// 是否允许上传
+		up.beforeUpload = function()
+		{
+			if(this.file.size > 10*1000000)
+			{
+				alert("文件太大!");
+				return false;
+			}
+			return true;
+		};
+		
+		
+		function selectFile()
+		{
+			up.openFileDialog();
+		}
+		
+	</script>
+</html>

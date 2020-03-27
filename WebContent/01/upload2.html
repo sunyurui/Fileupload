@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		 <link rel="stylesheet" href="../css/common.css" />
+		<script type="text/javascript" src="../js/lwquery.js"></script>
+		<script type="text/javascript" src="../js/jquery.js" ></script>
+		
+		<style>
+			.main{
+				
+			}
+			
+			.main input{
+				margin: 20px;
+			}
+			.main .upload{
+				background-color: cornflowerblue;
+				color: #fff;
+				border: 1px solid #ccc;
+				border-radius: 1px;
+				padding: 8px 18px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class='main'>
+			<input type='file' class='filebutton' style='display:none' onchange='fileSelected()'  /> <br>
+			<button class="upload" onclick='openFileDialog()' > 选择文件上传 </button>
+	   </div>
+	</body>
+	
+	<script>
+		
+		// 点击普通按钮
+		function openFileDialog()
+		{
+			// 模拟触发点击事件
+			$('.filebutton').click();
+		}
+		
+		// 用户选择了一个文件 onchange事件被触发
+		function fileSelected()
+		{
+			var fbutton = $('.filebutton')[0]; // DOM
+			var file = fbutton.files[0]; // fbutton.files 可能一次选了多个文件
+			fbutton.value = ''; // 清空选择
+			startUpload ( file ); // 开始上传
+		}
+		
+		// 开始上传, 参数为 File 对象
+		function startUpload( file )
+		{
+			var uploadUrl = LW.getContextPath()+"FileUploadService1";
+			
+			// 手工构造一个 form 对象
+			var formData = new FormData();
+			formData.append('file', file); // 'file' 为HTTP Post里的字段名, file 对浏览器里的File对象
+					
+			// 手工构造一个请求对象，用这个对象来发送表单数据
+			// 设置 progress, load, error, abort 4个事件处理器
+		    var request = new XMLHttpRequest();		
+		    request.upload.addEventListener("progress", window.evt_upload_progress, false);
+		    request.addEventListener("load", window.evt_upload_complete, false);
+		    request.addEventListener("error", window.evt_upload_failed, false);
+		    request.addEventListener("abort", window.evt_upload_cancel, false);			
+			request.open("POST", uploadUrl ); // 设置服务URL
+		    request.send(formData);  // 发送表单数据
+		}
+		
+		window.evt_upload_progress = function (evt) 
+		{
+		    if (evt.lengthComputable)
+		    {
+		    	var progress = Math.round(evt.loaded * 100 / evt.total);		    	
+		    	LW.log ("上传进度: " + progress);		
+		    }	        
+		};
+		window.evt_upload_complete = function (evt)
+		{
+			if(evt.loaded == 0)
+			{
+				LW.log ("上传失败!");
+			}
+			else
+			{
+				LW.log ("上传完成!");
+		    	var response = JSON.parse(evt.target.responseText);
+		   		LW.log (response);
+			}			
+		};		 
+		window.evt_upload_failed = function (evt) 
+		{			
+			LW.log  ("上传出错"); 
+		};
+		window.evt_upload_cancel = function (evt) 
+		{
+			LW.log( "上传中止!");	
+		};
+
+		
+	</script>
+</html>
